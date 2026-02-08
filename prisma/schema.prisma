@@ -1,0 +1,372 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  PROPERTY_MANAGER
+  FINANCE_MANAGER
+  MAINTENANCE_STAFF
+  TENANT
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+  MIXED
+}
+
+enum UnitStatus {
+  VACANT
+  OCCUPIED
+  MAINTENANCE
+  RESERVED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK_TRANSFER
+  MOBILE_MONEY
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  PARTIAL
+  FAILED
+}
+
+enum WorkOrderStatus {
+  SUBMITTED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  users       User[]
+  properties  Property[]
+  vendors     Vendor[]
+  auditLogs   AuditLog[]
+}
+
+model User {
+  id              String       @id @default(uuid())
+  email           String       @unique
+  password        String?
+  firstName       String
+  lastName        String
+  role            UserRole
+  emailVerified   DateTime?
+  image           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  accounts           Account[]
+  sessions           Session[]
+  assignedWorkOrders WorkOrder[]
+  createdTasks       Task[]      @relation("TaskCreator")
+  assignedTasks      Task[]      @relation("TaskAssignee")
+  auditLogs          AuditLog[]
+  notifications      Notification[]
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  
+  @@unique([identifier, token])
+}
+
+model Property {
+  id              String       @id @default(uuid())
+  name            String
+  address         String
+  city            String
+  state           String?
+  country         String
+  zipCode         String?
+  type            PropertyType
+  yearBuilt       Int?
+  purchasePrice   Decimal?
+  description     String?
+  photo           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  units           Unit[]
+  documents       Document[]
+  expenses        Expense[]
+  workOrders      WorkOrder[]
+  maintenanceRequests MaintenanceRequest[]
+}
+
+model Unit {
+  id             String     @id @default(uuid())
+  unitNumber     String
+  bedrooms       Int
+  bathrooms      Float
+  sqFt           Float?
+  marketRent     Decimal
+  status         UnitStatus @default(VACANT)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  
+  propertyId     String
+  property       Property   @relation(fields: [propertyId], references: [id])
+  
+  leases         Lease[]
+  workOrders     WorkOrder[]
+  maintenanceRequests MaintenanceRequest[]
+}
+
+model Tenant {
+  id              String   @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String   @unique
+  phone           String
+  emergencyContact String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  leases          Lease[]
+  documents       Document[]
+  maintenanceRequests MaintenanceRequest[]
+}
+
+model Lease {
+  id            String   @id @default(uuid())
+  startDate     DateTime
+  endDate       DateTime
+  rentAmount    Decimal
+  depositAmount Decimal
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  unitId        String
+  unit          Unit     @relation(fields: [unitId], references: [id])
+  
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  
+  payments      Payment[]
+  invoices      Invoice[]
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  amount        Decimal
+  date          DateTime
+  method        PaymentMethod
+  status        PaymentStatus
+  reference     String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  leaseId       String
+  lease         Lease         @relation(fields: [leaseId], references: [id])
+  
+  invoiceId     String?
+  invoice       Invoice?      @relation(fields: [invoiceId], references: [id])
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  amount        Decimal
+  dueDate       DateTime
+  description   String
+  status        PaymentStatus
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  leaseId       String
+  lease         Lease         @relation(fields: [leaseId], references: [id])
+  
+  payments      Payment[]
+}
+
+model Expense {
+  id            String   @id @default(uuid())
+  amount        Decimal
+  date          DateTime
+  category      String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  propertyId    String
+  property      Property @relation(fields: [propertyId], references: [id])
+}
+
+model WorkOrder {
+  id            String          @id @default(uuid())
+  title         String
+  description   String
+  priority      Priority
+  status        WorkOrderStatus
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  
+  propertyId    String
+  property      Property        @relation(fields: [propertyId], references: [id])
+  
+  unitId        String?
+  unit          Unit?           @relation(fields: [unitId], references: [id])
+  
+  assignedToId  String?
+  assignedTo    User?           @relation(fields: [assignedToId], references: [id])
+  
+  vendorId      String?
+  vendor        Vendor?         @relation(fields: [vendorId], references: [id])
+}
+
+model Vendor {
+  id              String       @id @default(uuid())
+  name            String
+  serviceType     String
+  email           String?
+  phone           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  workOrders      WorkOrder[]
+}
+
+model Document {
+  id            String   @id @default(uuid())
+  name          String
+  url           String
+  type          String
+  size          Int
+  createdAt     DateTime @default(now())
+  
+  propertyId    String?
+  property      Property? @relation(fields: [propertyId], references: [id])
+  
+  tenantId      String?
+  tenant        Tenant?   @relation(fields: [tenantId], references: [id])
+}
+
+model Task {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  dueDate       DateTime?
+  completed     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  creatorId     String
+  creator       User     @relation("TaskCreator", fields: [creatorId], references: [id])
+  
+  assigneeId    String?
+  assignee      User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+}
+
+model AuditLog {
+  id             String       @id @default(uuid())
+  action         String
+  entity         String
+  entityId       String
+  details        String?
+  createdAt      DateTime     @default(now())
+  
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model MaintenanceRequest {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  status      WorkOrderStatus @default(SUBMITTED)
+  priority    Priority        @default(MEDIUM)
+  images      String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  unitId      String
+  unit        Unit     @relation(fields: [unitId], references: [id])
+
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  type      String   // INFO, SUCCESS, WARNING, ERROR
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
