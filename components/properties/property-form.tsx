@@ -7,6 +7,7 @@ import { z } from "zod"
 import { useRouter } from "next/navigation"
 import { PropertyType } from "@prisma/client"
 import { createProperty } from "@/lib/actions/property"
+import { Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -78,7 +79,10 @@ export function PropertyForm() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>Add Property</Button>
+                <Button className="gap-2 gradient-gold text-accent-foreground font-semibold shadow-gold hover:opacity-90 transition-opacity border-0">
+                    <Plus className="w-4 h-4" />
+                    Add Property
+                </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
