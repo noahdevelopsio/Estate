@@ -4,6 +4,7 @@ import { MaintenanceRequestList } from "@/components/maintenance/request-list"
 import { MaintenanceRequestForm } from "@/components/maintenance/request-form"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { Search } from "lucide-react"
 
 // Get units for the form
 async function getUserUnits(email: string) {
@@ -64,13 +65,45 @@ export default async function MaintenancePage() {
     // For the form, we need units
     const units = await getUserUnits(session?.user?.email || "")
 
+    // Calculate Status Counts
+    const statusCounts = {
+        SUBMITTED: requests.filter(r => r.status === "SUBMITTED").length,
+        ASSIGNED: requests.filter(r => r.status === "ASSIGNED").length,
+        IN_PROGRESS: requests.filter(r => r.status === "IN_PROGRESS").length,
+        COMPLETED: requests.filter(r => r.status === "COMPLETED").length,
+        CLOSED: requests.filter(r => r.status === "CLOSED").length,
+    }
+
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <div className="flex items-center justify-between space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight">Maintenance</h2>
+        <div className="space-y-6 max-w-7xl">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-display font-extrabold text-foreground tracking-tight">Maintenance</h1>
+                    <p className="text-sm text-muted-foreground mt-1">{requests.length} work orders</p>
+                </div>
                 <div className="flex items-center space-x-2">
                     <MaintenanceRequestForm units={units} />
                 </div>
+            </div>
+
+            {/* Search */}
+            <div className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3 shadow-card max-w-md focus-within:ring-1 focus-within:ring-accent/30 transition-all">
+                <Search className="w-4 h-4 text-muted-foreground" />
+                <input
+                    type="text"
+                    placeholder="Search work orders..."
+                    className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none w-full"
+                />
+            </div>
+
+            {/* Status Summary */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                {Object.entries(statusCounts).map(([status, count]) => (
+                    <div key={status} className="bg-card border border-border rounded-xl p-4 shadow-card text-center hover:shadow-card-hover transition-shadow">
+                        <p className="text-2xl font-display font-bold text-card-foreground">{count}</p>
+                        <p className="text-xs text-muted-foreground capitalize mt-1">{status.replace('_', ' ').toLowerCase()}</p>
+                    </div>
+                ))}
             </div>
 
             <div className="space-y-4">

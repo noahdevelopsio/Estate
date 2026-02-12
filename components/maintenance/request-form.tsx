@@ -1,5 +1,7 @@
 "use client"
 
+import { Plus } from "lucide-react"
+
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -76,7 +78,10 @@ export function MaintenanceRequestForm({ units }: { units: any[] }) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>Report Issue</Button>
+                <Button className="gap-2 gradient-gold text-accent-foreground font-semibold shadow-gold hover:opacity-90 transition-opacity border-0">
+                    <Plus className="w-4 h-4" />
+                    New Work Order
+                </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
