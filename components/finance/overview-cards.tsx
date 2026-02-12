@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { MetricCard } from "@/components/dashboard/metric-card"
 import { DollarSign, TrendingDown, TrendingUp, Wallet } from "lucide-react"
 
 interface OverviewCardsProps {
@@ -10,47 +10,39 @@ interface OverviewCardsProps {
     }
 }
 
+function formatCurrency(val: number) {
+    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(val)
+}
+
 export function OverviewCards({ stats }: OverviewCardsProps) {
     const isProfit = stats.netIncome >= 0
 
     return (
-        <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">${stats.revenue.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">{stats.month}</p>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Expenses</CardTitle>
-                    <TrendingDown className="h-4 w-4 text-red-600" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">${stats.expenses.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">{stats.month}</p>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Net Income</CardTitle>
-                    <Wallet className={`h-4 w-4 ${isProfit ? 'text-green-600' : 'text-red-600'}`} />
-                </CardHeader>
-                <CardContent>
-                    <div className={`text-2xl font-bold ${isProfit ? 'text-green-600' : 'text-red-600'}`}>
-                        ${Math.abs(stats.netIncome).toLocaleString()}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                        {isProfit ? 'Profit' : 'Loss'} for {stats.month}
-                    </p>
-                </CardContent>
-            </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <MetricCard
+                title="Total Revenue"
+                value={formatCurrency(stats.revenue)}
+                change={stats.month}
+                changeType="positive"
+                icon={TrendingUp}
+                gradient="gradient-metric-1"
+            />
+            <MetricCard
+                title="Total Expenses"
+                value={formatCurrency(stats.expenses)}
+                change={stats.month}
+                changeType="negative"
+                icon={TrendingDown}
+                gradient="gradient-metric-2"
+            />
+            <MetricCard
+                title="Net Income"
+                value={formatCurrency(stats.netIncome)}
+                change={isProfit ? "Profit" : "Loss"}
+                changeType={isProfit ? "positive" : "negative"}
+                icon={isProfit ? DollarSign : Wallet} // or keep DollarSign
+                gradient="gradient-metric-3"
+            />
         </div>
     )
 }
