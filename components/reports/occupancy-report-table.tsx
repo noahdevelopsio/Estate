@@ -8,13 +8,12 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 
 export function OccupancyReportTable({ properties }: { properties: any[] }) {
     return (
         <Table>
             <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/30">
                     <TableHead>Property</TableHead>
                     <TableHead>Total Units</TableHead>
                     <TableHead>Occupied</TableHead>
@@ -31,16 +30,16 @@ export function OccupancyReportTable({ properties }: { properties: any[] }) {
 
                     return (
                         <TableRow key={property.id}>
-                            <TableCell className="font-medium">{property.name}</TableCell>
+                            <TableCell className="font-medium text-foreground">{property.name}</TableCell>
                             <TableCell>{totalUnits}</TableCell>
                             <TableCell>{occupied}</TableCell>
                             <TableCell>{vacant}</TableCell>
                             <TableCell>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-bold">{rate}%</span>
-                                    <div className="w-24 h-2 bg-secondary rounded-full overflow-hidden">
+                                <div className="flex items-center gap-3">
+                                    <span className="font-bold w-8 text-right">{rate}%</span>
+                                    <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
                                         <div
-                                            className="h-full bg-primary"
+                                            className="h-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
                                             style={{ width: `${rate}%` }}
                                         />
                                     </div>
