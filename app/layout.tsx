@@ -1,41 +1,32 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
-import { SessionProvider } from "@/components/providers/session-provider";
+import { Toaster } from "@/components/ui/toaster";
+import { OrgProvider } from "@/components/providers/org-provider";
+import { auth } from "@/lib/auth";
 
-const fontSans = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
-
-const fontMono = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-display" });
 
 export const metadata: Metadata = {
-  title: "Estate Management Platform",
-  description: "Premium Multi-Tenant Estate Management",
+  title: "Estate Management",
+  description: "Next-gen estate management platform",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable,
-          fontMono.variable
-        )}
-      >
-        <SessionProvider>
+    <html lang="en">
+      <body className={`${inter.variable} ${jakarta.variable} font-body bg-background text-foreground`}>
+        <OrgProvider session={session}>
           {children}
-        </SessionProvider>
+          <Toaster />
+        </OrgProvider>
       </body>
     </html>
   );
