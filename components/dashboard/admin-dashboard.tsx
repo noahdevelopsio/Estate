@@ -14,7 +14,7 @@ export function AdminDashboard({ adminName, orgName }: { adminName: string, orgN
     const recentOrders = mockWorkOrders.filter(o => o.status !== 'completed' && o.status !== 'closed').slice(0, 4)
 
     return (
-        <div className="space-y-8 max-w-7xl mx-auto">
+        <div className="space-y-8 max-w-7xl">
             {/* Header */}
             <div className="flex items-end justify-between">
                 <div>
@@ -97,7 +97,7 @@ export function AdminDashboard({ adminName, orgName }: { adminName: string, orgN
                                         fontSize: '12px',
                                         boxShadow: '0 8px 24px -4px rgba(0,0,0,0.3)',
                                     }}
-                                    formatter={(value: number) => [formatCurrency(value), '']}
+                                    formatter={(value: any) => [formatCurrency(value), '']}
                                 />
                                 <Bar dataKey="revenue" fill="hsl(222, 47%, 18%)" radius={[6, 6, 0, 0]} />
                                 <Bar dataKey="expenses" fill="hsl(220, 13%, 88%)" radius={[6, 6, 0, 0]} />

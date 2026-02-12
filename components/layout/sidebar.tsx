@@ -25,9 +25,9 @@ export function Sidebar({ className }: SidebarProps) {
     return (
         <aside
             className={cn(
-                "fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 ease-in-out",
+                "relative z-40 flex flex-col border-r border-sidebar-border transition-all duration-300 ease-in-out h-full",
                 collapsed ? "w-[72px]" : "w-[260px]",
-                "hidden md:flex", // Hide on mobile, show on md+
+                "hidden lg:flex", // Hide on mobile/tablet, show on lg+
                 className
             )}
             style={{ background: 'var(--gradient-sidebar)' }}
@@ -114,7 +114,7 @@ export function MobileSidebar() {
             <SheetTrigger asChild>
                 <Button
                     variant="ghost"
-                    className="md:hidden fixed top-4 left-4 z-50 p-2.5 h-auto w-auto rounded-xl bg-card shadow-md border border-border"
+                    className="lg:hidden fixed top-4 left-4 z-50 p-2.5 h-auto w-auto rounded-xl bg-card shadow-md border border-border"
                 >
                     <Menu className="w-5 h-5 text-foreground" />
                 </Button>
