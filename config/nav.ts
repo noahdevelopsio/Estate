@@ -7,7 +7,8 @@ import {
     FileText,
     Settings,
     PieChart,
-    History
+    History,
+    CheckSquare
 } from "lucide-react"
 
 const adminNav = [
@@ -45,6 +46,11 @@ const adminNav = [
         title: "Reports",
         href: "/dashboard/reports",
         icon: PieChart,
+    },
+    {
+        title: "Tasks",
+        href: "/dashboard/tasks",
+        icon: CheckSquare,
     },
     {
         title: "Settings",

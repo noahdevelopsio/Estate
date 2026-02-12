@@ -68,6 +68,7 @@ model Organization {
   users       User[]
   properties  Property[]
   vendors     Vendor[]
+  tasks       Task[]
   auditLogs   AuditLog[]
 }
 
@@ -308,12 +309,20 @@ model Document {
   tenant        Tenant?   @relation(fields: [tenantId], references: [id])
 }
 
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
 model Task {
   id            String   @id @default(uuid())
   title         String
   description   String?
   dueDate       DateTime?
-  completed     Boolean  @default(false)
+  status        TaskStatus @default(TODO)
+  priority      Priority   @default(MEDIUM)
+  completed     Boolean  @default(false) // Keeping for backward compatibility or easy toggle
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
@@ -322,6 +331,9 @@ model Task {
   
   assigneeId    String?
   assignee      User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
 }
 
 model AuditLog {
