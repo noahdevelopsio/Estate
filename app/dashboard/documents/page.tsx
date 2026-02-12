@@ -1,13 +1,9 @@
-
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getAllDocuments, getTenantDocuments } from "@/lib/actions/document"
-import { formatCurrency } from "@/lib/utils" // Not used but good import
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { FileText, Download, Trash } from "lucide-react"
 import { deleteDocument } from "@/lib/actions/document"
+import { Button } from "@/components/ui/button"
+import { FileText, Download, Trash, Upload, Folder } from "lucide-react"
 
 export default async function DocumentsPage() {
     const session = await auth()
@@ -23,49 +19,75 @@ export default async function DocumentsPage() {
         : await getAllDocuments()
 
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <div className="flex items-center justify-between space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight">Documents</h2>
+        <div className="space-y-6 max-w-7xl">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-display font-extrabold text-foreground tracking-tight">Documents</h1>
+                    <p className="text-sm text-muted-foreground mt-1">Manage all your property and tenant documents</p>
+                </div>
                 {!isTenant && (
-                    <Button>Upload Document (Select Property)</Button>
-                    // Admin upload is usually done contextually on Property/Tenant page.
-                    // Global upload might need a selector. For now, leave as list.
+                    <Button className="gap-2 gradient-gold text-accent-foreground font-semibold shadow-gold hover:opacity-90 transition-opacity border-0">
+                        <Upload className="w-4 h-4" />
+                        Upload
+                    </Button>
                 )}
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>{isTenant ? "My Documents" : "All Documents"}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Size</TableHead>
-                                <TableHead>Context</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {documents.length > 0 ? (
+            {/* Upload Zone (Visual Only for now, connecting to real upload requires client component) */}
+            {!isTenant && (
+                <div className="border-2 border-dashed border-border rounded-xl p-10 text-center bg-card hover:border-primary/40 transition-colors cursor-pointer group">
+                    <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/10 transition-colors">
+                        <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <p className="text-sm font-medium text-card-foreground">Drag & drop files here</p>
+                    <p className="text-xs text-muted-foreground mt-1">or click to browse. PDF, DOC, XLS, JPG up to 10MB</p>
+                </div>
+            )}
+
+            {/* Documents List */}
+            <div className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-muted/30 border-b border-border">
+                            <tr>
+                                <th className="py-4 px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
+                                <th className="py-4 px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>
+                                <th className="py-4 px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Size</th>
+                                <th className="py-4 px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                            {documents.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="text-center py-12 text-muted-foreground">
+                                        No documents found.
+                                    </td>
+                                </tr>
+                            ) : (
                                 documents.map((doc: any) => (
-                                    <TableRow key={doc.id}>
-                                        <TableCell className="font-medium">
-                                            <div className="flex items-center">
-                                                <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
-                                                {doc.name}
+                                    <tr key={doc.id} className="hover:bg-muted/30 transition-colors">
+                                        <td className="py-4 px-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600">
+                                                    <FileText className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-foreground">{doc.name}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {doc.property?.name || (doc.tenant ? "Tenant Personal" : "General")}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </TableCell>
-                                        <TableCell>{doc.type}</TableCell>
-                                        <TableCell>{(doc.size / 1024 / 1024).toFixed(2)} MB</TableCell>
-                                        <TableCell>
-                                            {doc.property?.name || (doc.tenant ? "Tenant Personal" : "General")}
-                                        </TableCell>
-                                        <TableCell className="text-right">
+                                        </td>
+                                        <td className="py-4 px-6 text-muted-foreground uppercase text-xs">
+                                            {doc.type}
+                                        </td>
+                                        <td className="py-4 px-6 text-muted-foreground">
+                                            {(doc.size / 1024 / 1024).toFixed(2)} MB
+                                        </td>
+                                        <td className="py-4 px-6 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon" asChild>
+                                                <Button variant="ghost" size="icon" asChild className="h-8 w-8 text-muted-foreground hover:text-primary">
                                                     <a href={doc.url} target="_blank" rel="noopener noreferrer">
                                                         <Download className="h-4 w-4" />
                                                     </a>
@@ -75,26 +97,20 @@ export default async function DocumentsPage() {
                                                         "use server"
                                                         await deleteDocument(doc.id)
                                                     }}>
-                                                        <Button variant="ghost" size="icon" type="submit">
-                                                            <Trash className="h-4 w-4 text-destructive" />
+                                                        <Button variant="ghost" size="icon" type="submit" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                                            <Trash className="h-4 w-4" />
                                                         </Button>
                                                     </form>
                                                 )}
                                             </div>
-                                        </TableCell>
-                                    </TableRow>
+                                        </td>
+                                    </tr>
                                 ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center">
-                                        No documents found.
-                                    </TableCell>
-                                </TableRow>
                             )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     )
 }
