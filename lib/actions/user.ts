@@ -41,3 +41,35 @@ export async function updateProfile(data: ProfileFormData) {
         return { error: "Failed to update profile" }
     }
 }
+
+
+export async function getUsers() {
+    const session = await auth()
+    if (!session?.user?.organizationId) return []
+
+    try {
+        const users = await prisma.user.findMany({
+            where: {
+                organizationId: session.user.organizationId,
+                NOT: {
+                    id: session.user.id
+                }
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                image: true,
+                role: true,
+            },
+            orderBy: {
+                firstName: 'asc',
+            }
+        })
+        return users
+    } catch (error) {
+        console.error("Failed to fetch users:", error)
+        return []
+    }
+}

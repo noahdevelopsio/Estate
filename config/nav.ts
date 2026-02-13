@@ -9,7 +9,8 @@ import {
     PieChart,
     History,
     CheckSquare,
-    Briefcase
+    Briefcase,
+    MessageSquare
 } from "lucide-react"
 
 const adminNav = [
@@ -67,6 +68,11 @@ const adminNav = [
         title: "Audit Logs",
         href: "/dashboard/audit-logs",
         icon: History,
+    },
+    {
+        title: "Messages",
+        href: "/dashboard/messages",
+        icon: MessageSquare,
     },
 ]
 

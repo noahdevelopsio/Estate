@@ -70,6 +70,7 @@ model Organization {
   vendors     Vendor[]
   tasks       Task[]
   auditLogs   AuditLog[]
+  conversations Conversation[]
 }
 
 model User {
@@ -94,6 +95,8 @@ model User {
   assignedTasks      Task[]      @relation("TaskAssignee")
   auditLogs          AuditLog[]
   notifications      Notification[]
+  conversations      Conversation[] @relation("ConversationParticipants")
+  sentMessages       Message[]      @relation("SentMessages")
 }
 
 model Account {
@@ -381,4 +384,30 @@ model Notification {
   
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants User[] @relation("ConversationParticipants")
+  messages     Message[]
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  content        String
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  senderId       String
+  sender         User     @relation("SentMessages", fields: [senderId], references: [id])
 }
