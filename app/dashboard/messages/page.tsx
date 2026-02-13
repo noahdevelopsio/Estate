@@ -3,7 +3,7 @@ import { ChatSidebar } from "@/components/messages/chat-sidebar"
 import { ChatWindow } from "@/components/messages/chat-window"
 import { NewChatDialog } from "@/components/messages/new-chat-dialog"
 import { getConversations } from "@/lib/actions/message"
-import { auth } from "@/auth"
+import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
 export const metadata: Metadata = {

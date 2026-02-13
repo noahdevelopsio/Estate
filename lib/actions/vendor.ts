@@ -3,7 +3,7 @@
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { auth } from "@/auth"
+import { auth } from "@/lib/auth"
 
 const VendorSchema = z.object({
     name: z.string().min(1, "Name is required"),

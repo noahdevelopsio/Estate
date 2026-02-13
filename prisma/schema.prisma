@@ -58,6 +58,14 @@ enum Priority {
   URGENT
 }
 
+enum MaintenanceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
 model Organization {
   id          String   @id @default(uuid())
   name        String
@@ -71,6 +79,7 @@ model Organization {
   tasks       Task[]
   auditLogs   AuditLog[]
   conversations Conversation[]
+  maintenanceSchedules MaintenanceSchedule[]
 }
 
 model User {
@@ -97,6 +106,7 @@ model User {
   notifications      Notification[]
   conversations      Conversation[] @relation("ConversationParticipants")
   sentMessages       Message[]      @relation("SentMessages")
+  assignedMaintenance MaintenanceSchedule[]
 }
 
 model Account {
@@ -159,6 +169,7 @@ model Property {
   expenses        Expense[]
   workOrders      WorkOrder[]
   maintenanceRequests MaintenanceRequest[]
+  maintenanceSchedules MaintenanceSchedule[]
 }
 
 model Unit {
@@ -372,6 +383,28 @@ model MaintenanceRequest {
 
   propertyId  String
   property    Property @relation(fields: [propertyId], references: [id])
+}
+
+model MaintenanceSchedule {
+  id          String               @id @default(uuid())
+  title       String
+  description String?
+  frequency   MaintenanceFrequency
+  startDate   DateTime
+  nextRunDate DateTime
+  lastRunDate DateTime?
+  isActive    Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  propertyId  String
+  property    Property             @relation(fields: [propertyId], references: [id])
+  
+  assignedToId String?
+  assignedTo   User?               @relation(fields: [assignedToId], references: [id])
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
 }
 
 model Notification {

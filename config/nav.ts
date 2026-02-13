@@ -40,6 +40,11 @@ const adminNav = [
         icon: Wrench,
     },
     {
+        title: "Preventive",
+        href: "/dashboard/maintenance/preventive",
+        icon: Wrench,
+    },
+    {
         title: "Documents",
         href: "/dashboard/documents",
         icon: FileText,

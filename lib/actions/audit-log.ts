@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/lib/db"
-import { auth } from "@/auth"
+import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
 export async function getAuditLogs(limit = 50) {

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { Priority, WorkOrderStatus } from "@prisma/client"
+import { Priority, WorkOrderStatus, MaintenanceFrequency } from "@prisma/client"
 
 const maintenanceSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters"),
@@ -174,5 +174,118 @@ export async function updateMaintenanceStatus(id: string, status: WorkOrderStatu
         return { success: true }
     } catch (error) {
         return { error: "Failed to update status" }
+    }
+}
+
+const ScheduleSchema = z.object({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().optional(),
+    frequency: z.nativeEnum(MaintenanceFrequency),
+    startDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
+        message: "Invalid start date",
+    }),
+    propertyId: z.string().min(1, "Property is required"),
+    assignedToId: z.string().optional(),
+})
+
+export type ScheduleFormValues = z.infer<typeof ScheduleSchema>
+
+export async function createSchedule(data: ScheduleFormValues) {
+    try {
+        const session = await auth()
+
+        if (!session?.user?.organizationId) {
+            return { error: "Unauthorized" }
+        }
+
+        const validatedFields = ScheduleSchema.safeParse(data)
+
+        if (!validatedFields.success) {
+            return { error: "Invalid fields" }
+        }
+
+        const { title, description, frequency, startDate, propertyId, assignedToId } = validatedFields.data
+
+        const start = new Date(startDate)
+        const nextRun = start
+
+        await prisma.maintenanceSchedule.create({
+            data: {
+                title,
+                description,
+                frequency,
+                startDate: start,
+                nextRunDate: nextRun,
+                propertyId,
+                assignedToId: assignedToId || null,
+                organizationId: session.user.organizationId,
+            },
+        })
+
+        revalidatePath("/dashboard/maintenance")
+        return { success: "Schedule created successfully" }
+    } catch (error) {
+        console.error("Failed to create schedule:", error)
+        return { error: "Failed to create schedule" }
+    }
+}
+
+export async function getSchedules() {
+    try {
+        const session = await auth()
+
+        if (!session?.user?.organizationId) {
+            return []
+        }
+
+        const schedules = await prisma.maintenanceSchedule.findMany({
+            where: {
+                organizationId: session.user.organizationId,
+            },
+            include: {
+                property: {
+                    select: {
+                        name: true,
+                    }
+                },
+                assignedTo: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        image: true,
+                    }
+                }
+            },
+            orderBy: {
+                nextRunDate: 'asc',
+            }
+        })
+
+        return schedules
+    } catch (error) {
+        console.error("Failed to fetch schedules:", error)
+        return []
+    }
+}
+
+export async function deleteSchedule(id: string) {
+    try {
+        const session = await auth()
+        if (!session?.user?.organizationId) {
+            return { error: "Unauthorized" }
+        }
+
+        await prisma.maintenanceSchedule.delete({
+            where: {
+                id,
+                organizationId: session.user.organizationId
+            }
+        })
+
+        revalidatePath("/dashboard/maintenance")
+        return { success: "Schedule deleted" }
+    } catch (error) {
+        console.error("Failed to delete schedule:", error)
+        return { error: "Failed to delete schedule" }
     }
 }
