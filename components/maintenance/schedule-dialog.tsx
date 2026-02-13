@@ -44,7 +44,7 @@ const formSchema = z.object({
     description: z.string().optional(),
     frequency: z.enum(MaintenanceFrequency),
     startDate: z.date({
-        required_error: "Start date is required",
+        message: "Start date is required",
     }),
     propertyId: z.string().min(1, "Property is required"),
     assignedToId: z.string().optional(),
